@@ -91,7 +91,7 @@ class Globs:
             
             index +=1
             
-    def sprzedaz_domow_rel(self, przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci):
+    def sprzedaz_domow_rel(self, przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci, rel_y):
 
         oplata_adjacencka = przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ * self.POW
         koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
@@ -105,7 +105,7 @@ class Globs:
             self.y[index] = 0.0
             self.y[index] -= oplata_adjacencka
             self.y[index] -= koszty_globalne
-            self.y[index] -= self.n_dzialek_pow_cal*i
+            self.y[index] -= rel_y[index]
             koszty_nieruchomosci_netto = koszty_nieruchomosci/(1+self.VAT)
             sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1+self.VAT)
             zysk = 0.0
@@ -126,16 +126,25 @@ class Globs:
         fig = plt.figure(figsize=(10,7))
         ax = fig.add_axes([0, 0, 1, 1])
         
+        plt.ylabel('zysk')
+        
         self.sprzedaz_calosci(cena_bez_podzialu)
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz bez podzialu")
+        
+        rel_y = np.copy(self.y)
     
         self.sprzedaz_dzialek(przed_adjacencka_cena_za_metr, wzrost_wartosci)
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz z podzialem")
         
+        for i in range(self.size):
+            rel_y[i] = max(rel_y[i],self.y[i])
+            
+        
         self.sprzedaz_domow(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci)
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow + VAT i DOCHODOWY")
         
-        self.sprzedaz_domow_rel(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci)
+        
+        self.sprzedaz_domow_rel(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci, rel_y)
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow + VAT i DOCHODOWY (minus sprzedaz dzialek)")
         
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
