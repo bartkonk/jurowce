@@ -10,7 +10,7 @@ from matplotlib import animation
 
 class Globs:
 
-    def __init__(self,VAT,DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow,Cena_sprzedazy):
+    def __init__(self,VAT,DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow,cena_sprzedazy):
         self.VAT  = VAT
         self.DOCHODOWY = DOCHODOWY
         self.ADJ = ADJ
@@ -20,11 +20,13 @@ class Globs:
         self.wzrost_wartosci = wzrost_wartosci
         self.n_dzialek = n_dzialek
         self.n_dzialek_pow = n_dzialek_pow
-        self.cena_sprzedazy = Cena_sprzedazy
+        self.cena_sprzedazy = cena_sprzedazy
         
+        self.dochodowy = 0.0
+        self.oplata_adjacencka = 0.0
         self.n_dzialek_pow_cal = 0
         if self.n_dzialek != len(self.n_dzialek_pow):
-            print 'ilosc dzialek oraz ilosc podanychwww powierzchni nie pasuje'
+            print 'ilosc dzialek oraz ilosc podanych powierzchni nie pasuje'
             return
         
         for d in self.n_dzialek_pow:
@@ -33,133 +35,100 @@ class Globs:
         self.size = self.cena_sprzedazy[1] - self.cena_sprzedazy[0]
         self.x = np.zeros(self.size)
         self.y = np.zeros(self.size)
+        self.y1 = np.zeros(self.size)
+        self.ymax = np.zeros(self.size)
         
-    def init_inwestycje(self, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci):
+    def init_inwestycje(self, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, pelny_spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci):
         self.geodezja = geodezja
         self.droga = droga
         self.linia_energetyczna = linia_energetyczna
-        self.spadek_kosztow = spadek_kosztow
+        self.pelny_spadek_kosztow = pelny_spadek_kosztow
         self.pelny_spadek_kosztow_po = pelny_spadek_kosztow_po
         self.koszty_nieruchomosci = koszty_nieruchomosci
         self.sprzedaz_nieruchomosci = sprzedaz_nieruchomosci
         
-    def sprzedaz_calosci(self,cena_bez_podzialu):
+        self.koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
+
+        self.spadek_kosztow = np.zeros(self.n_dzialek)
+        for d in range(self.n_dzialek):
+            self.spadek_kosztow[d] = self.pelny_spadek_kosztow
+            
+        factor = self.pelny_spadek_kosztow/self.pelny_spadek_kosztow_po
+        
+        for d in range(int(self.pelny_spadek_kosztow_po)):
+            self.spadek_kosztow[d] = (float(d))*factor
+        
+    def sprzedaz_calosci(self, cena_bez_podzialu):
         index = 0
         for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
             self.x[index] = i
             self.y[index] = self.POW * cena_bez_podzialu
+            self.ymax[index] = self.y[index]
             index +=1
+            
+    def oblicz_oplate_adjacencka(self, przed_adjacencka_cena_za_metr, wzrost_wartosci):
+        self.oplata_adjacencka = self.POW * przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ
+        
+    def sprzedaz_dzialek(self):
+        index = 0
+        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
+            self.x[index] = i
+            self.y[index] = self.n_dzialek_pow_cal*i - self.oplata_adjacencka
+            if(self.y[index] > self.ymax[index]):
+                self.ymax[index] = self.y[index]
+            index +=1
+                    
+    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci):
+
+        index = 0
+        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
+            self.x[index] = i
+            self.y[index] = 0.0
+            koszty_nieruchomosci_netto = koszty_nieruchomosci/(1 + self.VAT)
+            sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1 + self.VAT)
+            zysk = 0.0
+            for d in range(self.n_dzialek):
+                zysk +=(sprzedaz_nieruchomosci_netto - (koszty_nieruchomosci_netto*(1 - self.spadek_kosztow[d])))
+            
+            self.y[index] -= self.oplata_adjacencka
+            zysk -= self.koszty_globalne
+            self.y[index] += zysk
+            self.y1[index] = self.y[index]
+            self.dochodowy = zysk * self.DOCHODOWY
+            self.y[index] -= self.dochodowy
+            #minus max z dzialki
+            self.y[index] -= self.ymax[index]
+            self.y1[index] -= self.ymax[index]
+            
+            index +=1
+            
+    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci):
     
-    def sprzedaz_dzialek(self, przed_adjacencka_cena_za_metr, wzrost_wartosci):
+        self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
         
-        oplata_adjacencka = przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ * self.POW
-        print'adjacencka = ',
-        print oplata_adjacencka
+        print 'oplata adjacencka',
+        print self.oplata_adjacencka
         
-        print 'calkowita powierzchnia podzielonych dzialek = ',
+        print 'powierzchnia dzialek podzielonych',
         print self.n_dzialek_pow_cal
         
-        index = 0
-        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
-            self.x[index] = i
-            self.y[index] = self.n_dzialek_pow_cal*i - oplata_adjacencka
-            index +=1
-            
-            
-    def sprzedaz_domow(self, przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci):
-
-        oplata_adjacencka = przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ * self.POW
-        koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
-
-        spadek_kosztow = np.zeros(self.n_dzialek)
-        for d in range(self.n_dzialek):
-            spadek_kosztow[d] = self.spadek_kosztow
-            
-        factor = self.spadek_kosztow/self.pelny_spadek_kosztow_po
-        
-        for d in range(int(self.pelny_spadek_kosztow_po)):
-            spadek_kosztow[d] = (float(d))*factor
-        
-        #print spadek_kosztow
-            
-        index = 0
-        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
-            self.x[index] = i
-            self.y[index] = 0.0
-            self.y[index] -= oplata_adjacencka
-            self.y[index] -= koszty_globalne
-            koszty_nieruchomosci_netto = koszty_nieruchomosci/(1+self.VAT)
-            sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1+self.VAT)
-            zysk = 0.0
-            for d in range(self.n_dzialek):
-                zysk +=(sprzedaz_nieruchomosci_netto - koszty_nieruchomosci_netto*(1-spadek_kosztow[d]))
-
-            self.y[index] += zysk
-            self.y[index] *=(1-self.DOCHODOWY)
-            
-            index +=1
-            
-    def sprzedaz_domow_rel(self, przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci, rel_y):
-
-        oplata_adjacencka = przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ * self.POW
-        koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
-
-        spadek_kosztow = np.zeros(self.n_dzialek)
-        for d in range(self.n_dzialek):
-            spadek_kosztow[d] = self.spadek_kosztow
-            
-        factor = self.spadek_kosztow/self.pelny_spadek_kosztow_po
-        
-        for d in range(int(self.pelny_spadek_kosztow_po)):
-            spadek_kosztow[d] = (float(d))*factor
-
-        index = 0
-        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
-            self.x[index] = i
-            self.y[index] = 0.0
-            self.y[index] -= oplata_adjacencka
-            self.y[index] -= koszty_globalne
-            koszty_nieruchomosci_netto = koszty_nieruchomosci/(1+self.VAT)
-            sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1+self.VAT)
-            zysk = 0.0
-            for d in range(self.n_dzialek):
-                zysk +=(sprzedaz_nieruchomosci_netto - koszty_nieruchomosci_netto*(1-spadek_kosztow[d]))
-
-            self.y[index] += zysk
-            dochodowy = zysk*self.DOCHODOWY
-            self.y[index] *=(1-self.DOCHODOWY)
-            self.y[index] -= rel_y[index]
-            
-            index +=1
-        print 'dochodowy = ',
-        print dochodowy
-
-
-    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci):
-
         fig = plt.figure(figsize=(10,7))
         ax = fig.add_axes([0, 0, 1, 1])
-        
         plt.ylabel('zysk')
         
         self.sprzedaz_calosci(cena_bez_podzialu)
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz bez podzialu")
         
-        rel_y = np.copy(self.y)
-    
-        self.sprzedaz_dzialek(przed_adjacencka_cena_za_metr, wzrost_wartosci)
+        self.sprzedaz_dzialek()
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz z podzialem")
         
-        for i in range(self.size):
-            rel_y[i] = max(rel_y[i],self.y[i])
-            
+        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci)
+        plt.plot(self.x,self.y1, linewidth=2,label="sprzedaz domow")
+        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow PO PODATKU")
         
-        self.sprzedaz_domow(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci)
-        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow + VAT i DOCHODOWY (nominalnie)")
+        print 'podatek dochodowy',
+        print self.dochodowy
         
-        
-        self.sprzedaz_domow_rel(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci, rel_y)
-        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow + VAT i DOCHODOWY (minus sprzedaz dzialek)")
         
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.grid()
@@ -178,7 +147,14 @@ class Globs:
         
 
 
-    
+        # print 'dochodowy = ',
+        # print dochodowy
+        
+        # print 'koszty netto = ',
+        # print koszty_nieruchomosci_netto
+        
+        # print 'sprzedaz netto = ',
+        # print sprzedaz_nieruchomosci_netto
 
     
 
