@@ -56,7 +56,7 @@ class Globs:
         print'adjacencka = ',
         print oplata_adjacencka
         
-        print 'calkowita powierzchnia = ',
+        print 'calkowita powierzchnia podzielonych dzialek = ',
         print self.n_dzialek_pow_cal
         
         index = 0
@@ -143,14 +143,14 @@ class Globs:
         plt.show()
             
 
-    def show(self):
-        w = interactive(self.plot, \
-        cena_bez_podzialu = self.cena_bez_podzialu,\
-        przed_adjacencka_cena_za_metr = self.cena_adjacencka_bez_podzialu, \
-        wzrost_wartosci = self.wzrost_wartosci, \
-        sprzedaz_nieruchomosci = self.sprzedaz_nieruchomosci, \
-        koszty_nieruchomosci = self.koszty_nieruchomosci)
-        display(w)
+    def start(self):
+        interact(self.plot, \
+        cena_bez_podzialu = widgets.FloatSlider(min=self.cena_bez_podzialu[0], max=self.cena_bez_podzialu[1], step=self.cena_bez_podzialu[2], continuous_update=False),\
+        przed_adjacencka_cena_za_metr = widgets.FloatSlider(min=self.cena_adjacencka_bez_podzialu[0], max=self.cena_adjacencka_bez_podzialu[1], step=self.cena_adjacencka_bez_podzialu[2], continuous_update=False),\
+        wzrost_wartosci = widgets.FloatSlider(min=self.wzrost_wartosci[0], max=self.wzrost_wartosci[1], step=self.wzrost_wartosci[2], continuous_update=False),\
+        koszty_nieruchomosci = widgets.FloatSlider(min=self.koszty_nieruchomosci[0], max=self.koszty_nieruchomosci[1], step=self.koszty_nieruchomosci[2], continuous_update=False),\
+        sprzedaz_nieruchomosci = widgets.FloatSlider(min=self.sprzedaz_nieruchomosci[0], max=self.sprzedaz_nieruchomosci[1], step=self.sprzedaz_nieruchomosci[2], continuous_update=False))
+        
         
         
 
