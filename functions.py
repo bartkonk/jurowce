@@ -38,7 +38,7 @@ class Globs:
         self.y1 = np.zeros(self.size)
         self.ymax = np.zeros(self.size)
         
-    def init_inwestycje(self, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, pelny_spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci):
+    def init_inwestycje(self, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, pelny_spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci, optymalizacja_podatkowa):
         self.geodezja = geodezja
         self.droga = droga
         self.linia_energetyczna = linia_energetyczna
@@ -46,6 +46,7 @@ class Globs:
         self.pelny_spadek_kosztow_po = pelny_spadek_kosztow_po
         self.koszty_nieruchomosci = koszty_nieruchomosci
         self.sprzedaz_nieruchomosci = sprzedaz_nieruchomosci
+        self.optymalizacja_podatkowa = optymalizacja_podatkowa
         
         self.koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
 
@@ -78,7 +79,7 @@ class Globs:
                 self.ymax[index] = self.y[index]
             index +=1
                     
-    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci):
+    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci,optymalizacja_podatkowa):
 
         index = 0
         for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
@@ -90,11 +91,14 @@ class Globs:
             for d in range(self.n_dzialek):
                 zysk +=(sprzedaz_nieruchomosci_netto - (koszty_nieruchomosci_netto*(1 - self.spadek_kosztow[d])))
             
-            self.y[index] -= self.oplata_adjacencka
+            
             zysk -= self.koszty_globalne
+            
+            self.y[index] -= self.oplata_adjacencka
             self.y[index] += zysk
             self.y1[index] = self.y[index]
             self.dochodowy = zysk * self.DOCHODOWY
+            self.dochodowy *=(1-optymalizacja_podatkowa)
             self.y[index] -= self.dochodowy
             #minus max z dzialki
             self.y[index] -= self.ymax[index]
@@ -102,7 +106,7 @@ class Globs:
             
             index +=1
             
-    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci):
+    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa):
     
         self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
         
@@ -122,7 +126,7 @@ class Globs:
         self.sprzedaz_dzialek()
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz z podzialem")
         
-        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci)
+        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci, optymalizacja_podatkowa)
         plt.plot(self.x,self.y1, linewidth=2,label="sprzedaz domow")
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow PO PODATKU")
         
@@ -141,20 +145,9 @@ class Globs:
         przed_adjacencka_cena_za_metr = widgets.FloatSlider(min=self.cena_adjacencka_bez_podzialu[0], max=self.cena_adjacencka_bez_podzialu[1], step=self.cena_adjacencka_bez_podzialu[2], continuous_update=False),\
         wzrost_wartosci = widgets.FloatSlider(min=self.wzrost_wartosci[0], max=self.wzrost_wartosci[1], step=self.wzrost_wartosci[2], continuous_update=False),\
         koszty_nieruchomosci = widgets.FloatSlider(min=self.koszty_nieruchomosci[0], max=self.koszty_nieruchomosci[1], step=self.koszty_nieruchomosci[2], continuous_update=False),\
-        sprzedaz_nieruchomosci = widgets.FloatSlider(min=self.sprzedaz_nieruchomosci[0], max=self.sprzedaz_nieruchomosci[1], step=self.sprzedaz_nieruchomosci[2], continuous_update=False))
+        sprzedaz_nieruchomosci = widgets.FloatSlider(min=self.sprzedaz_nieruchomosci[0], max=self.sprzedaz_nieruchomosci[1], step=self.sprzedaz_nieruchomosci[2], continuous_update=False),\
+        optymalizacja_podatkowa = widgets.FloatSlider(min=self.optymalizacja_podatkowa[0], max=self.optymalizacja_podatkowa[1], step=self.optymalizacja_podatkowa[2], continuous_update=False))
         
-        
-        
-
-
-        # print 'dochodowy = ',
-        # print dochodowy
-        
-        # print 'koszty netto = ',
-        # print koszty_nieruchomosci_netto
-        
-        # print 'sprzedaz netto = ',
-        # print sprzedaz_nieruchomosci_netto
 
     
 
