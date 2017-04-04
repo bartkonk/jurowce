@@ -71,9 +71,17 @@ class Globs:
         oplata_adjacencka = przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ * self.POW
         koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
 
-        #self.spadek_kosztow = spadek_kosztow
-        #self.pelny_spadek_kosztow_po = pelny_spadek_kosztow_po
-
+        spadek_kosztow = np.zeros(self.n_dzialek)
+        for d in range(self.n_dzialek):
+            spadek_kosztow[d] = self.spadek_kosztow
+            
+        factor = self.spadek_kosztow/self.pelny_spadek_kosztow_po
+        
+        for d in range(int(self.pelny_spadek_kosztow_po)):
+            spadek_kosztow[d] = (float(d))*factor
+        
+        #print spadek_kosztow
+            
         index = 0
         for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
             self.x[index] = i
@@ -84,7 +92,7 @@ class Globs:
             sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1+self.VAT)
             zysk = 0.0
             for d in range(self.n_dzialek):
-                zysk +=(sprzedaz_nieruchomosci_netto - koszty_nieruchomosci_netto)
+                zysk +=(sprzedaz_nieruchomosci_netto - koszty_nieruchomosci_netto*(1-spadek_kosztow[d]))
 
             self.y[index] += zysk
             self.y[index] *=(1-self.DOCHODOWY)
@@ -96,8 +104,14 @@ class Globs:
         oplata_adjacencka = przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ * self.POW
         koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
 
-        #self.spadek_kosztow = spadek_kosztow
-        #self.pelny_spadek_kosztow_po = pelny_spadek_kosztow_po
+        spadek_kosztow = np.zeros(self.n_dzialek)
+        for d in range(self.n_dzialek):
+            spadek_kosztow[d] = self.spadek_kosztow
+            
+        factor = self.spadek_kosztow/self.pelny_spadek_kosztow_po
+        
+        for d in range(int(self.pelny_spadek_kosztow_po)):
+            spadek_kosztow[d] = (float(d))*factor
 
         index = 0
         for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
@@ -105,16 +119,16 @@ class Globs:
             self.y[index] = 0.0
             self.y[index] -= oplata_adjacencka
             self.y[index] -= koszty_globalne
-            self.y[index] -= rel_y[index]
             koszty_nieruchomosci_netto = koszty_nieruchomosci/(1+self.VAT)
             sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1+self.VAT)
             zysk = 0.0
             for d in range(self.n_dzialek):
-                zysk +=(sprzedaz_nieruchomosci_netto - koszty_nieruchomosci_netto)
+                zysk +=(sprzedaz_nieruchomosci_netto - koszty_nieruchomosci_netto*(1-spadek_kosztow[d]))
 
             self.y[index] += zysk
             dochodowy = zysk*self.DOCHODOWY
             self.y[index] *=(1-self.DOCHODOWY)
+            self.y[index] -= rel_y[index]
             
             index +=1
         print 'dochodowy = ',
@@ -141,7 +155,7 @@ class Globs:
             
         
         self.sprzedaz_domow(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci)
-        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow + VAT i DOCHODOWY")
+        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow + VAT i DOCHODOWY (nominalnie)")
         
         
         self.sprzedaz_domow_rel(przed_adjacencka_cena_za_metr, wzrost_wartosci, sprzedaz_nieruchomosci, koszty_nieruchomosci, rel_y)
