@@ -20,7 +20,8 @@ class Globs:
         self.wzrost_wartosci = wzrost_wartosci
         self.n_dzialek = n_dzialek
         self.n_dzialek_pow = n_dzialek_pow
-        self.cena_sprzedazy = cena_sprzedazy
+        
+        self.cena_sprzedazy = (cena_sprzedazy[0],cena_sprzedazy[1] + 1)
         
         self.dochodowy = 0.0
         self.oplata_adjacencka = 0.0
@@ -31,7 +32,7 @@ class Globs:
         
         for d in self.n_dzialek_pow:
             self.n_dzialek_pow_cal +=d
-            
+                
         self.size = self.cena_sprzedazy[1] - self.cena_sprzedazy[0]
         self.x = np.zeros(self.size)
         self.y = np.zeros(self.size)
@@ -85,18 +86,19 @@ class Globs:
         for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
             self.x[index] = i
             self.y[index] = 0.0
+            self.y1[index] = 0.0
             koszty_nieruchomosci_netto = koszty_nieruchomosci/(1 + self.VAT)
             sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1 + self.VAT)
             zysk = 0.0
             for d in range(self.n_dzialek):
                 zysk +=(sprzedaz_nieruchomosci_netto - (koszty_nieruchomosci_netto*(1 - self.spadek_kosztow[d])))
             
-            
             zysk -= self.koszty_globalne
+            zysk -= self.oplata_adjacencka
             
-            self.y[index] -= self.oplata_adjacencka
             self.y[index] += zysk
-            self.y1[index] = self.y[index]
+            self.y1[index] += zysk
+            
             self.dochodowy = zysk * self.DOCHODOWY
             self.dochodowy *=(1-optymalizacja_podatkowa)
             self.y[index] -= self.dochodowy
@@ -119,6 +121,7 @@ class Globs:
         fig = plt.figure(figsize=(10,7))
         ax = fig.add_axes([0, 0, 1, 1])
         plt.ylabel('zysk')
+        plt.xticks(np.arange(self.cena_sprzedazy[0],self.cena_sprzedazy[1],5))
         
         self.sprzedaz_calosci(cena_bez_podzialu)
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz bez podzialu")
