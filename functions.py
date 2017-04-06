@@ -1,4 +1,4 @@
-from ipywidgets import interact, interactive, fixed, Layout, Box, Label, HBox, VBox
+from ipywidgets import interact, interactive, fixed, Box, Label, HBox, VBox
 import ipywidgets as widgets
 from IPython.display import clear_output, display, HTML
 import numpy as np
