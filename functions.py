@@ -172,7 +172,7 @@ class Globs:
         wid_params.append(Box([Label(value='Wzrost wartosci wedlug rzeczoznawcy'), _wzrost_wartosci]))
         wid_params.append(Box([Label(value='Koszt nieruchomosci '), _koszty_nieruchomosci]))
         wid_params.append(Box([Label(value='Sprzedaz nieruchomisci'), _sprzedaz_nieruchomosci]))
-        wid_params.append(Box([Label(value='Optymalizacja podatju'), _optymalizacja_podatkowa]))
+        wid_params.append(Box([Label(value='Optymalizacja podatku'), _optymalizacja_podatkowa]))
         
         
         display(HBox([VBox([wid_params[0], wid_params[3]]), VBox([wid_params[1], wid_params[4]]), VBox([wid_params[2], wid_params[5]])]))
