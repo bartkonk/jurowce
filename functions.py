@@ -172,13 +172,11 @@ class Globs:
         wid_params.append(_sprzedaz_nieruchomosci)
         wid_params.append(_optymalizacja_podatkowa)
         
-        vbox1 = VBox([wid_params[0], wid_params[3]])
-        vbox2 = VBox([wid_params[1], wid_params[4]])
-        vbox3 = VBox([wid_params[2], wid_params[5]])
-        vbox1.layout.width = "33%"
-        vbox2.layout.width = "33%" 
-        vbox3.layout.width = "33%"         
-        display(HBox([vbox1, vbox2 ,vbox3 ]))
+        vbox1 = VBox([wid_params[0], wid_params[2], wid_params[4]])
+        vbox2 = VBox([wid_params[1], wid_params[3], wid_params[5]])
+        #vbox1.layout.width = "33%"
+        #vbox2.layout.width = "33%"       
+        display(HBox([vbox1, vbox2]))
         
         interactive(self.plot,cena_bez_podzialu = _cena_bez_podzialu, przed_adjacencka_cena_za_metr = _przed_adjacencka_cena_za_metr, \
         wzrost_wartosci = _wzrost_wartosci, koszty_nieruchomosci = _koszty_nieruchomosci, sprzedaz_nieruchomosci = _sprzedaz_nieruchomosci, optymalizacja_podatkowa = _optymalizacja_podatkowa)
