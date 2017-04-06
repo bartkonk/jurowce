@@ -1,4 +1,4 @@
-from ipywidgets import interact, interactive, fixed
+from ipywidgets import interact, interactive, fixed, Layout, Box, Label, HBox, VBox
 import ipywidgets as widgets
 from IPython.display import clear_output, display, HTML
 import numpy as np
@@ -10,7 +10,7 @@ from matplotlib import animation
 
 class Globs:
 
-    def __init__(self,VAT,DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow,cena_sprzedazy):
+    def __init__(self,VAT,DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow):
         self.VAT  = VAT
         self.DOCHODOWY = DOCHODOWY
         self.ADJ = ADJ
@@ -21,8 +21,6 @@ class Globs:
         self.n_dzialek = n_dzialek
         self.n_dzialek_pow = n_dzialek_pow
         
-        self.cena_sprzedazy = (cena_sprzedazy[0],cena_sprzedazy[1] + 1)
-        
         self.dochodowy = 0.0
         self.oplata_adjacencka = 0.0
         self.n_dzialek_pow_cal = 0
@@ -32,8 +30,9 @@ class Globs:
         
         for d in self.n_dzialek_pow:
             self.n_dzialek_pow_cal +=d
-                
-        self.size = self.cena_sprzedazy[1] - self.cena_sprzedazy[0]
+         
+        self.size = 66         
+        self.cena_sprzedazy = [0.0 for i in range(self.size)]
         self.x = np.zeros(self.size)
         self.y = np.zeros(self.size)
         self.y1 = np.zeros(self.size)
@@ -61,21 +60,27 @@ class Globs:
             self.spadek_kosztow[d] = (float(d))*factor
         
     def sprzedaz_calosci(self, cena_bez_podzialu):
+    
+        self.cena_sprzedazy[0] = cena_bez_podzialu
+        for i in range(1,self.size):
+            self.cena_sprzedazy[i] = self.cena_sprzedazy[i-1] + 1.0
+
         index = 0
-        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
-            self.x[index] = i
+        for price in (self.cena_sprzedazy):
+            self.x[index] = price
             self.y[index] = self.POW * cena_bez_podzialu
             self.ymax[index] = self.y[index]
             index +=1
+        
             
     def oblicz_oplate_adjacencka(self, przed_adjacencka_cena_za_metr, wzrost_wartosci):
         self.oplata_adjacencka = self.POW * przed_adjacencka_cena_za_metr * wzrost_wartosci * self.ADJ
         
     def sprzedaz_dzialek(self):
         index = 0
-        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
-            self.x[index] = i
-            self.y[index] = self.n_dzialek_pow_cal*i - self.oplata_adjacencka
+        for price in (self.cena_sprzedazy):
+            self.x[index] = price
+            self.y[index] = self.n_dzialek_pow_cal*price - self.oplata_adjacencka
             if(self.y[index] > self.ymax[index]):
                 self.ymax[index] = self.y[index]
             index +=1
@@ -83,8 +88,8 @@ class Globs:
     def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci,optymalizacja_podatkowa):
 
         index = 0
-        for i in range(self.cena_sprzedazy[0], self.cena_sprzedazy[1]):
-            self.x[index] = i
+        for price in (self.cena_sprzedazy):
+            self.x[index] = price
             self.y[index] = 0.0
             self.y1[index] = 0.0
             koszty_nieruchomosci_netto = koszty_nieruchomosci/(1 + self.VAT)
@@ -111,51 +116,65 @@ class Globs:
     def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa):
     
         self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
-        
-        print 'oplata adjacencka',
-        print self.oplata_adjacencka
-        
-        print 'powierzchnia dzialek podzielonych',
-        print self.n_dzialek_pow_cal
-        
-        fig = plt.figure(figsize=(10,7))
+
+        fig = plt.figure(figsize=(10,4))
         ax = fig.add_axes([0, 0, 1, 1])
         plt.ylabel('zysk')
-        plt.xticks(np.arange(self.cena_sprzedazy[0],self.cena_sprzedazy[1],5))
-        
+
         self.sprzedaz_calosci(cena_bez_podzialu)
+        plt.xticks(np.arange(self.cena_sprzedazy[0],self.cena_sprzedazy[self.size-1]+5,5))
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz bez podzialu")
-        
+
         self.sprzedaz_dzialek()
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz z podzialem")
         
         self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci, optymalizacja_podatkowa)
         plt.plot(self.x,self.y1, linewidth=2,label="sprzedaz domow")
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow PO PODATKU")
-        
-        print 'podatek dochodowy',
-        print self.dochodowy
-        
-        
+
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.grid()
         plt.show()
+        
+        print 'oplata adjacencka',
+        print self.oplata_adjacencka
+        print 'powierzchnia dzialek podzielonych',
+        print self.n_dzialek_pow_cal
+        print 'podatek dochodowy',
+        print self.dochodowy
             
 
     def start(self):
-        interact(self.plot, \
-        cena_bez_podzialu = widgets.FloatSlider(min=self.cena_bez_podzialu[0], max=self.cena_bez_podzialu[1], step=self.cena_bez_podzialu[2], continuous_update=False),\
-        przed_adjacencka_cena_za_metr = widgets.FloatSlider(min=self.cena_adjacencka_bez_podzialu[0], max=self.cena_adjacencka_bez_podzialu[1], step=self.cena_adjacencka_bez_podzialu[2], continuous_update=False),\
-        wzrost_wartosci = widgets.FloatSlider(min=self.wzrost_wartosci[0], max=self.wzrost_wartosci[1], step=self.wzrost_wartosci[2], continuous_update=False),\
-        koszty_nieruchomosci = widgets.FloatSlider(min=self.koszty_nieruchomosci[0], max=self.koszty_nieruchomosci[1], step=self.koszty_nieruchomosci[2], continuous_update=False),\
-        sprzedaz_nieruchomosci = widgets.FloatSlider(min=self.sprzedaz_nieruchomosci[0], max=self.sprzedaz_nieruchomosci[1], step=self.sprzedaz_nieruchomosci[2], continuous_update=False),\
-        optymalizacja_podatkowa = widgets.FloatSlider(min=self.optymalizacja_podatkowa[0], max=self.optymalizacja_podatkowa[1], step=self.optymalizacja_podatkowa[2], continuous_update=False))
+        _cena_bez_podzialu = widgets.FloatSlider(min=self.cena_bez_podzialu[0], max=self.cena_bez_podzialu[1], step=self.cena_bez_podzialu[2])
+        _przed_adjacencka_cena_za_metr = widgets.FloatSlider(min=self.cena_adjacencka_bez_podzialu[0], max=self.cena_adjacencka_bez_podzialu[1], step=self.cena_adjacencka_bez_podzialu[2])
+        _wzrost_wartosci = widgets.FloatSlider(min=self.wzrost_wartosci[0], max=self.wzrost_wartosci[1], step=self.wzrost_wartosci[2])
+        _koszty_nieruchomosci = widgets.FloatSlider(min=self.koszty_nieruchomosci[0], max=self.koszty_nieruchomosci[1], step=self.koszty_nieruchomosci[2])
+        _sprzedaz_nieruchomosci = widgets.FloatSlider(min=self.sprzedaz_nieruchomosci[0], max=self.sprzedaz_nieruchomosci[1], step=self.sprzedaz_nieruchomosci[2])
+        _optymalizacja_podatkowa = widgets.FloatSlider(min=self.optymalizacja_podatkowa[0], max=self.optymalizacja_podatkowa[1], step=self.optymalizacja_podatkowa[2])
         
+        _cena_bez_podzialu.continuous_update = False
+        _przed_adjacencka_cena_za_metr.continuous_update = False
+        _wzrost_wartosci.continuous_update = False
+        _koszty_nieruchomosci.continuous_update = False
+        _sprzedaz_nieruchomosci.continuous_update = False
+        _optymalizacja_podatkowa.continuous_update = False
+        
+        _cena_bez_podzialu.description = ' '
+        _przed_adjacencka_cena_za_metr.description = ' '
+        _wzrost_wartosci.description = ' '
+        _koszty_nieruchomosci.description = ' '
+        _sprzedaz_nieruchomosci.description = ' '
+        _optymalizacja_podatkowa.description = ' '
+        wid_params = []
 
-    
-
-    
-    
-    
-
-
+        wid_params.append(Box([Label(value='Cena sprzedazy bez podzialu'), _cena_bez_podzialu]))
+        wid_params.append(Box([Label(value='Wartosc wedlug rzeczoznawcy'), _przed_adjacencka_cena_za_metr]))
+        wid_params.append(Box([Label(value='Wzrost wartosci wedlug rzeczoznawcy'), _wzrost_wartosci]))
+        wid_params.append(Box([Label(value='Koszt nieruchomosci '), _koszty_nieruchomosci]))
+        wid_params.append(Box([Label(value='Sprzedaz nieruchomisci'), _sprzedaz_nieruchomosci]))
+        wid_params.append(Box([Label(value='Optymalizacja podatju'), _optymalizacja_podatkowa]))
+        
+        
+        display(HBox([VBox([wid_params[0], wid_params[3]]), VBox([wid_params[1], wid_params[4]]), VBox([wid_params[2], wid_params[5]])]))
+        w = interactive(self.plot,cena_bez_podzialu = _cena_bez_podzialu, przed_adjacencka_cena_za_metr = _przed_adjacencka_cena_za_metr, \
+        wzrost_wartosci = _wzrost_wartosci, koszty_nieruchomosci = _koszty_nieruchomosci, sprzedaz_nieruchomosci = _sprzedaz_nieruchomosci, optymalizacja_podatkowa = _optymalizacja_podatkowa)
