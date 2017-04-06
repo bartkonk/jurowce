@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import cnames
 from matplotlib import animation
+import platform
 
 class Globs:
 
@@ -142,6 +143,15 @@ class Globs:
             
 
     def start(self):
+    
+        #check the platform
+        win = True
+        if((platform.platform(aliased=0, terse=0)[0:7]) == 'Windows'):
+            win = True
+        else:
+            win = False
+        
+        
         _cena_bez_podzialu = widgets.FloatSlider(min=self.cena_bez_podzialu[0], max=self.cena_bez_podzialu[1], step=self.cena_bez_podzialu[2])
         _przed_adjacencka_cena_za_metr = widgets.FloatSlider(min=self.cena_adjacencka_bez_podzialu[0], max=self.cena_adjacencka_bez_podzialu[1], step=self.cena_adjacencka_bez_podzialu[2])
         _wzrost_wartosci = widgets.FloatSlider(min=self.wzrost_wartosci[0], max=self.wzrost_wartosci[1], step=self.wzrost_wartosci[2])
@@ -156,25 +166,32 @@ class Globs:
         _sprzedaz_nieruchomosci.continuous_update = False
         _optymalizacja_podatkowa.continuous_update = False
         
-        _cena_bez_podzialu.width = "150px"
-        _przed_adjacencka_cena_za_metr.width = "150px"
-        _wzrost_wartosci.width = "150px"
-        _koszty_nieruchomosci.width = "150px"
-        _sprzedaz_nieruchomosci.width = "150px"
-        _optymalizacja_podatkowa.width = "150px"
+        width = "100px"
+        if(win):
+            width = "300px"
+        else:
+            width = "150px"
+            
+
+        _cena_bez_podzialu.width = width
+        _przed_adjacencka_cena_za_metr.width = width
+        _wzrost_wartosci.width = width
+        _koszty_nieruchomosci.width = width
+        _sprzedaz_nieruchomosci.width = width
+        _optymalizacja_podatkowa.width = width
 
         _cena_bez_podzialu.margin = "10px 10px 10px 10px"
         _przed_adjacencka_cena_za_metr.margin = "10px 10px 10px -52px"
         _wzrost_wartosci.margin = "10px 10px 10px 41px"
         _koszty_nieruchomosci.margin = "10px 10px 10px 10px"
-        _sprzedaz_nieruchomosci.margin = "10px 10px 10px 31px"
+        _sprzedaz_nieruchomosci.margin = "10px 10px 10px 26px"
         _optymalizacja_podatkowa.margin = "10px 10px 10px 10px"
 
         _cena_bez_podzialu.description = 'Cena'
         _przed_adjacencka_cena_za_metr.description = 'Cena rzeczoznawcy'
         _wzrost_wartosci.description = 'Wzrost wartosci'
         _koszty_nieruchomosci.description = 'Koszt nieruchomosci'
-        _sprzedaz_nieruchomosci.description = 'Sprzedaz nieruchomisci'
+        _sprzedaz_nieruchomosci.description = 'Sprzedaz nieruchomosci'
         _optymalizacja_podatkowa.description = 'Optymalizacja podatku'
         wid_params = []
         wid_names = []
