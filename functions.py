@@ -143,14 +143,6 @@ class Globs:
             
 
     def start(self):
-    
-        #check the platform
-        win = True
-        if((platform.platform(aliased=0, terse=0)[0:7]) == 'Windows'):
-            win = True
-        else:
-            win = False
-        
         
         _cena_bez_podzialu = widgets.FloatSlider(min=self.cena_bez_podzialu[0], max=self.cena_bez_podzialu[1], step=self.cena_bez_podzialu[2])
         _przed_adjacencka_cena_za_metr = widgets.FloatSlider(min=self.cena_adjacencka_bez_podzialu[0], max=self.cena_adjacencka_bez_podzialu[1], step=self.cena_adjacencka_bez_podzialu[2])
@@ -166,13 +158,8 @@ class Globs:
         _sprzedaz_nieruchomosci.continuous_update = False
         _optymalizacja_podatkowa.continuous_update = False
         
-        width = "100px"
-        if(win):
-            width = "300px"
-        else:
-            width = "150px"
+        width = "100%"
             
-
         _cena_bez_podzialu.width = width
         _przed_adjacencka_cena_za_metr.width = width
         _wzrost_wartosci.width = width
@@ -180,21 +167,22 @@ class Globs:
         _sprzedaz_nieruchomosci.width = width
         _optymalizacja_podatkowa.width = width
 
-        _cena_bez_podzialu.margin = "10px 10px 10px 10px"
-        _przed_adjacencka_cena_za_metr.margin = "10px 10px 10px -52px"
-        _wzrost_wartosci.margin = "10px 10px 10px 41px"
-        _koszty_nieruchomosci.margin = "10px 10px 10px 10px"
-        _sprzedaz_nieruchomosci.margin = "10px 10px 10px 26px"
-        _optymalizacja_podatkowa.margin = "10px 10px 10px 10px"
+        _cena_bez_podzialu.margin = "0px 0px 0px -70px"
+        _przed_adjacencka_cena_za_metr.margin ="0px 0px 0px -70px"
+        _wzrost_wartosci.margin = "0px 0px 0px -70px"
+        _koszty_nieruchomosci.margin = "0px 0px 0px -70px"
+        _sprzedaz_nieruchomosci.margin = "0px 0px 0px -70px"
+        _optymalizacja_podatkowa.margin = "0px 0px 0px -70px"
 
-        _cena_bez_podzialu.description = 'Cena'
-        _przed_adjacencka_cena_za_metr.description = 'Cena rzeczoznawcy'
-        _wzrost_wartosci.description = 'Wzrost wartosci'
-        _koszty_nieruchomosci.description = 'Koszt nieruchomosci'
-        _sprzedaz_nieruchomosci.description = 'Sprzedaz nieruchomosci'
-        _optymalizacja_podatkowa.description = 'Optymalizacja podatku'
+        _cena_bez_podzialu.description = ' '
+        _przed_adjacencka_cena_za_metr.description = ' '
+        _wzrost_wartosci.description = ' '
+        _koszty_nieruchomosci.description = ' '
+        _sprzedaz_nieruchomosci.description = ' '
+        _optymalizacja_podatkowa.description = ' '
         wid_params = []
         wid_names = []
+        boxes = []
 
         wid_params.append(_cena_bez_podzialu)
         wid_params.append(_przed_adjacencka_cena_za_metr)
@@ -203,8 +191,18 @@ class Globs:
         wid_params.append(_sprzedaz_nieruchomosci)
         wid_params.append(_optymalizacja_podatkowa)
 
-        vbox1 = HBox([wid_params[0], wid_params[2], wid_params[4]])
-        vbox2 = HBox([wid_params[1], wid_params[3], wid_params[5]])     
+        wid_names.append(widgets.ToggleButton(description='Cena sprzedazy',disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Cena rzeczoznawcy',disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Wzrost wartosci',disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Koszt nieruchomosci',disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Sprzedaz nieruchomosci',disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Optymalizacja podatku',disabled=True, border='none'))
+
+        for i in range(len(wid_params)):
+           boxes.append(Box([wid_names[i],wid_params[i]],margin = "0px 0px 10px 20px",width = '30%')) 
+
+        vbox1 = HBox([boxes[0], boxes[1], boxes[2]])
+        vbox2 = HBox([boxes[3], boxes[4], boxes[5]])     
         display(vbox1)
         display(vbox2)
         
