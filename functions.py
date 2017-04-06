@@ -156,13 +156,20 @@ class Globs:
         _sprzedaz_nieruchomosci.continuous_update = False
         _optymalizacja_podatkowa.continuous_update = False
         
-        _cena_bez_podzialu.width = "250px"
-        _przed_adjacencka_cena_za_metr.width = "250px"
-        _wzrost_wartosci.width = "250px"
-        _koszty_nieruchomosci.width = "250px"
-        _sprzedaz_nieruchomosci.width = "250px"
-        _optymalizacja_podatkowa.width = "250px"
-        
+        _cena_bez_podzialu.width = "150px"
+        _przed_adjacencka_cena_za_metr.width = "150px"
+        _wzrost_wartosci.width = "150px"
+        _koszty_nieruchomosci.width = "150px"
+        _sprzedaz_nieruchomosci.width = "150px"
+        _optymalizacja_podatkowa.width = "150px"
+
+        _cena_bez_podzialu.margin = "10px 10px 10px 10px"
+        _przed_adjacencka_cena_za_metr.margin = "10px 10px 10px -52px"
+        _wzrost_wartosci.margin = "10px 10px 10px 39px"
+        _koszty_nieruchomosci.margin = "10px 10px 10px 10px"
+        _sprzedaz_nieruchomosci.margin = "10px 10px 10px 30px"
+        _optymalizacja_podatkowa.margin = "10px 10px 10px 10px"
+
         _cena_bez_podzialu.description = 'Cena'
         _przed_adjacencka_cena_za_metr.description = 'Cena rzeczoznawcy'
         _wzrost_wartosci.description = 'Wzrost wartosci'
@@ -178,11 +185,11 @@ class Globs:
         wid_params.append(_koszty_nieruchomosci)
         wid_params.append(_sprzedaz_nieruchomosci)
         wid_params.append(_optymalizacja_podatkowa)
-        
-        vbox1 = VBox([wid_params[0], wid_params[3]])
-        vbox2 = VBox([wid_params[1], wid_params[4]])    
-        vbox3 = VBox([wid_params[2], wid_params[5]])    
-        display(HBox([vbox1, vbox2, vbox3]))
+
+        vbox1 = HBox([wid_params[0], wid_params[2], wid_params[4]])
+        vbox2 = HBox([wid_params[1], wid_params[3], wid_params[5]])     
+        display(vbox1)
+        display(vbox2)
         
         interactive(self.plot,cena_bez_podzialu = _cena_bez_podzialu, przed_adjacencka_cena_za_metr = _przed_adjacencka_cena_za_metr, \
         wzrost_wartosci = _wzrost_wartosci, koszty_nieruchomosci = _koszty_nieruchomosci, sprzedaz_nieruchomosci = _sprzedaz_nieruchomosci, optymalizacja_podatkowa = _optymalizacja_podatkowa)
