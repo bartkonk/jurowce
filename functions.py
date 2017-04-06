@@ -165,17 +165,17 @@ class Globs:
 
         _cena_bez_podzialu.margin = "10px 10px 10px 10px"
         _przed_adjacencka_cena_za_metr.margin = "10px 10px 10px -52px"
-        _wzrost_wartosci.margin = "10px 10px 10px 39px"
+        _wzrost_wartosci.margin = "10px 10px 10px 41px"
         _koszty_nieruchomosci.margin = "10px 10px 10px 10px"
-        _sprzedaz_nieruchomosci.margin = "10px 10px 10px 30px"
+        _sprzedaz_nieruchomosci.margin = "10px 10px 10px 31px"
         _optymalizacja_podatkowa.margin = "10px 10px 10px 10px"
 
         _cena_bez_podzialu.description = 'Cena'
         _przed_adjacencka_cena_za_metr.description = 'Cena rzeczoznawcy'
         _wzrost_wartosci.description = 'Wzrost wartosci'
-        _koszty_nieruchomosci.description = 'koszt nieruchomosci'
-        _sprzedaz_nieruchomosci.description = 'sprzedaz nieruchomisci'
-        _optymalizacja_podatkowa.description = 'optymalizacja podatku'
+        _koszty_nieruchomosci.description = 'Koszt nieruchomosci'
+        _sprzedaz_nieruchomosci.description = 'Sprzedaz nieruchomisci'
+        _optymalizacja_podatkowa.description = 'Optymalizacja podatku'
         wid_params = []
         wid_names = []
 
