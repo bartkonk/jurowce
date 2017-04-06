@@ -25,7 +25,7 @@ class Globs:
         self.oplata_adjacencka = 0.0
         self.n_dzialek_pow_cal = 0
         if self.n_dzialek != len(self.n_dzialek_pow):
-            print 'ilosc dzialek oraz ilosc podanych powierzchni nie pasuje'
+            print ('ilosc dzialek oraz ilosc podanych powierzchni nie pasuje')
             return
         
         for d in self.n_dzialek_pow:
@@ -136,12 +136,9 @@ class Globs:
         plt.grid()
         plt.show()
         
-        print 'oplata adjacencka',
-        print self.oplata_adjacencka
-        print 'powierzchnia dzialek podzielonych',
-        print self.n_dzialek_pow_cal
-        print 'podatek dochodowy',
-        print self.dochodowy
+        print ('oplata adjacencka',self.oplata_adjacencka)
+        print ('powierzchnia dzialek podzielonych',self.n_dzialek_pow_cal)
+        print ('podatek dochodowy',self.dochodowy)
             
 
     def start(self):
