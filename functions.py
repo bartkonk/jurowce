@@ -39,18 +39,21 @@ class Globs:
         self.y1 = np.zeros(self.size)
         self.ymax = np.zeros(self.size)
         
-    def init_inwestycje(self, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, pelny_spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci, optymalizacja_podatkowa):
-        self.geodezja = geodezja
-        self.droga = droga
-        self.linia_energetyczna = linia_energetyczna
-        self.pelny_spadek_kosztow = pelny_spadek_kosztow
+
+    def init_inwestycje(self,podatek_od_kapitalu_wejsciowego, inne_koszty, ilosc_lat, koszty_miesieczne, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci, optymalizacja_podatkowa):
+        
+        self.pelny_spadek_kosztow = spadek_kosztow
         self.pelny_spadek_kosztow_po = pelny_spadek_kosztow_po
         self.koszty_nieruchomosci = koszty_nieruchomosci
         self.sprzedaz_nieruchomosci = sprzedaz_nieruchomosci
         self.optymalizacja_podatkowa = optymalizacja_podatkowa
-        
-        self.koszty_globalne = self.geodezja + self.droga + self.linia_energetyczna
-
+        self.podatek_od_kapitalu_wejsciowego = podatek_od_kapitalu_wejsciowego
+                
+        self.koszty_globalne = geodezja + droga + linia_energetyczna + inne_koszty
+        for rok in range(ilosc_lat):
+            for month in range(0,12):
+                self.koszty_globalne +=koszty_miesieczne
+                
         self.spadek_kosztow = np.zeros(self.n_dzialek)
         for d in range(self.n_dzialek):
             self.spadek_kosztow[d] = self.pelny_spadek_kosztow
@@ -86,7 +89,7 @@ class Globs:
                 self.ymax[index] = self.y[index]
             index +=1
                     
-    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci,optymalizacja_podatkowa):
+    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci,optymalizacja_podatkowa, podatek_wejsciowy):
 
         index = 0
         for price in (self.cena_sprzedazy):
@@ -109,14 +112,15 @@ class Globs:
             self.dochodowy *=(1-optymalizacja_podatkowa)
             self.y[index] -= self.dochodowy
             #minus max z dzialki
-            self.y[index] -= self.ymax[index]
-            self.y1[index] -= self.ymax[index]
+            self.y[index] -= self.ymax[index] - podatek_wejsciowy
+            self.y1[index] -= self.ymax[index] - podatek_wejsciowy
             
             index +=1
             
     def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa):
     
         self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
+        podatek_wejsciowy = self.POW * przed_adjacencka_cena_za_metr *self.podatek_od_kapitalu_wejsciowego
 
         fig = plt.figure(figsize=(10,4))
         ax = fig.add_axes([0, 0, 1, 1])
@@ -129,7 +133,7 @@ class Globs:
         self.sprzedaz_dzialek()
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz z podzialem")
         
-        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci, optymalizacja_podatkowa)
+        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci, optymalizacja_podatkowa, podatek_wejsciowy)
         plt.plot(self.x,self.y1, linewidth=2,label="sprzedaz domow")
         plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow PO PODATKU")
 
