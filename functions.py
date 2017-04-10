@@ -176,12 +176,12 @@ class Globs:
         _sprzedaz_nieruchomosci.width = width
         _optymalizacja_podatkowa.width = width
 
-        _cena_bez_podzialu.margin = "0px 0px 0px -70px"
-        _przed_adjacencka_cena_za_metr.margin ="0px 0px 0px -70px"
-        _wzrost_wartosci.margin = "0px 0px 0px -70px"
-        _koszty_nieruchomosci.margin = "0px 0px 0px -70px"
-        _sprzedaz_nieruchomosci.margin = "0px 0px 0px -70px"
-        _optymalizacja_podatkowa.margin = "0px 0px 0px -70px"
+        _cena_bez_podzialu.margin = "0px 0px 5px -70px"
+        _przed_adjacencka_cena_za_metr.margin ="0px 0px 5px -70px"
+        _wzrost_wartosci.margin = "0px 0px 5px -70px"
+        _koszty_nieruchomosci.margin = "0px 0px 5px -70px"
+        _sprzedaz_nieruchomosci.margin = "0px 0px 5px -70px"
+        _optymalizacja_podatkowa.margin = "0px 0px 5px -70px"
 
         _cena_bez_podzialu.description = ' '
         _przed_adjacencka_cena_za_metr.description = ' '
@@ -201,6 +201,7 @@ class Globs:
         wid_params.append(_sprzedaz_nieruchomosci)
         wid_params.append(_optymalizacja_podatkowa)
 
+       
         wid_names.append(widgets.ToggleButton(description='Cena sprzedazy', disabled=True, border='none'))
         wid_names.append(widgets.ToggleButton(description='Cena rzeczoznawcy', disabled=True, border='none'))
         wid_names.append(widgets.ToggleButton(description='Wzrost wartosci', disabled=True, border='none'))
@@ -208,12 +209,13 @@ class Globs:
         wid_names.append(widgets.ToggleButton(description='Sprzedaz nieruchomosci (netto)', disabled=True, border='none'))
         wid_names.append(widgets.ToggleButton(description='Optymalizacja podatku', disabled=True, border='none'))
         
-        wid_extra_output.append(widgets.Text(disabled=True, value='-'))
-        wid_extra_output.append(widgets.Text(disabled=True, value='-'))
-        wid_extra_output.append(widgets.Text(disabled=True))
-        wid_extra_output.append(widgets.Text(disabled=True))
-        wid_extra_output.append(widgets.Text(disabled=True))
-        wid_extra_output.append(widgets.Text(disabled=True))
+        width_ = "60%"
+        wid_extra_output.append(widgets.Text(width = width_, disabled=True, value='-'))
+        wid_extra_output.append(widgets.Text(width = width_, disabled=True, value='-'))
+        wid_extra_output.append(widgets.Text(width = width_, disabled=True))
+        wid_extra_output.append(widgets.Text(width = width_, disabled=True))
+        wid_extra_output.append(widgets.Text(width = width_, disabled=True))
+        wid_extra_output.append(widgets.Text(width = width_, disabled=True))
         
         def cena_rzeczoznawcy(change):
             a = widgets.Text(disabled=True, value = 'Nominalnie za metr '+str(wid_params[2].value * change['new']))
@@ -243,7 +245,7 @@ class Globs:
         
         
         for i in range(len(wid_params)):
-            boxes.append(Box([wid_names[i],wid_params[i],wid_extra_output[i]],margin = "0px 0px 10px 20px",width = '30%')) 
+            boxes.append(Box([wid_names[i],wid_params[i],wid_extra_output[i]],margin = "0px 0px 10px 20px",width = '25%')) 
 
         vbox1 = HBox([boxes[0], boxes[1], boxes[2]])
         vbox2 = HBox([boxes[3], boxes[4], boxes[5]])     
