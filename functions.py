@@ -40,6 +40,8 @@ class Globs:
         self.y1 = np.zeros(self.size)
         self.ymax = np.zeros(self.size)
         
+        self.zysk = 0.0
+        
 
     def init_inwestycje(self,podatek_od_kapitalu_wejsciowego, inne_koszty, ilosc_lat, koszty_miesieczne, geodezja, droga, linia_energetyczna, koszty_nieruchomosci, spadek_kosztow, pelny_spadek_kosztow_po, sprzedaz_nieruchomosci, optymalizacja_podatkowa):
         
@@ -111,9 +113,12 @@ class Globs:
             self.dochodowy = dochodowy
             dochodowy *=(1-optymalizacja_podatkowa) 
             self.y[index] -= dochodowy
-            #minus max z dzialki
+            #nominalny
+            self.zysk = self.y[index] - podatek_wejsciowy
+            #relatywny do max z dzialki
             self.y[index] -= self.ymax[index] + podatek_wejsciowy
             self.y1[index] -= self.ymax[index] + podatek_wejsciowy
+            
             
             index +=1
             
@@ -144,6 +149,7 @@ class Globs:
         print ('oplata adjacencka',self.oplata_adjacencka)
         print ('powierzchnia dzialek podzielonych',self.n_dzialek_pow_cal)
         print ('podatek dochodowy',self.dochodowy)
+        print ('nominalnie zysku',self.zysk)
             
 
     def on_value_change(self,change):
