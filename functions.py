@@ -99,25 +99,30 @@ class Globs:
             self.x[index] = price
             self.y[index] = 0.0
             self.y1[index] = 0.0
-            zysk = 0.0
+            zysk_netto = 0.0
             for d in range(self.n_dzialek):
-                zysk +=(sprzedaz_nieruchomosci - (koszty_nieruchomosci*(1 - self.spadek_kosztow[d])))
+                zysk_netto +=(sprzedaz_nieruchomosci - (koszty_nieruchomosci*(1 - self.spadek_kosztow[d])))
             
-            zysk -= self.koszty_globalne
-            zysk -= self.oplata_adjacencka
+            zysk_netto -= self.koszty_globalne
+            zysk_netto -= self.oplata_adjacencka
             
-            self.y[index] += zysk
-            self.y1[index] += zysk
+            self.y[index] += zysk_netto
+            self.y1[index] += zysk_netto
             
-            dochodowy = zysk * self.DOCHODOWY
+            dochodowy = zysk_netto * self.DOCHODOWY
             self.dochodowy = dochodowy
             dochodowy *=(1-optymalizacja_podatkowa) 
             self.y[index] -= dochodowy
-            #nominalny
-            self.zysk = self.y[index] - podatek_wejsciowy
+            
+            
             #relatywny do max z dzialki
-            self.y[index] -= self.ymax[index] + podatek_wejsciowy
-            self.y1[index] -= self.ymax[index] + podatek_wejsciowy
+            #self.y[index] -= self.ymax[index] + podatek_wejsciowy
+            #self.y1[index] -= self.ymax[index] + podatek_wejsciowy
+            
+            self.y[index] -= podatek_wejsciowy
+            self.y1[index] -= podatek_wejsciowy
+            
+            self.zysk = self.y[index]
             
             
             index +=1
@@ -146,6 +151,18 @@ class Globs:
         plt.grid()
         plt.show()
         
+        ##end of plot 1
+        display(HTML('<h4>Zysk relatywny do maximum(sprzedaz dzialek lub calosci))</h4>'))
+        fig = plt.figure(figsize=(10,4))
+        ax = fig.add_axes([0, 0, 1, 1])
+        plt.ylabel('zysk relatywny')
+        plt.plot(self.x,self.y/self.ymax, linewidth=2,label="oplacalnosc inwestycji")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        plt.grid()
+        plt.show()
+        
+        
+        
         print ('oplata adjacencka',self.oplata_adjacencka)
         print ('powierzchnia dzialek podzielonych',self.n_dzialek_pow_cal)
         print ('podatek dochodowy',self.dochodowy)
@@ -168,7 +185,7 @@ class Globs:
         _przed_adjacencka_cena_za_metr.value = 90
         _wzrost_wartosci.value = .45
         _koszty_nieruchomosci.value = 300000
-        _sprzedaz_nieruchomosci.value = 700000
+        _sprzedaz_nieruchomosci.value = 600000
         _optymalizacja_podatkowa.value = 0.0
         
         
@@ -213,7 +230,6 @@ class Globs:
         wid_params.append(_sprzedaz_nieruchomosci)
         wid_params.append(_optymalizacja_podatkowa)
 
-       
         wid_names.append(widgets.ToggleButton(description='Cena sprzedazy', disabled=True, border='none'))
         wid_names.append(widgets.ToggleButton(description='Cena rzeczoznawcy', disabled=True, border='none'))
         wid_names.append(widgets.ToggleButton(description='Wzrost wartosci', disabled=True, border='none'))
