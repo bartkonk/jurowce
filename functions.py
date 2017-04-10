@@ -11,8 +11,9 @@ import platform
 
 class Globs:
 
-    def __init__(self,VAT,DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow):
-        self.VAT  = VAT
+    def __init__(self, VAT1, VAT2, DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow):
+        self.VAT1  = VAT1
+        self.VAT2  = VAT2
         self.DOCHODOWY = DOCHODOWY
         self.ADJ = ADJ
         self.POW = POW
@@ -96,8 +97,8 @@ class Globs:
             self.x[index] = price
             self.y[index] = 0.0
             self.y1[index] = 0.0
-            koszty_nieruchomosci_netto = koszty_nieruchomosci/(1 + self.VAT)
-            sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci/(1 + self.VAT)
+            koszty_nieruchomosci_netto = koszty_nieruchomosci
+            sprzedaz_nieruchomosci_netto = sprzedaz_nieruchomosci
             zysk = 0.0
             for d in range(self.n_dzialek):
                 zysk +=(sprzedaz_nieruchomosci_netto - (koszty_nieruchomosci_netto*(1 - self.spadek_kosztow[d])))
@@ -108,12 +109,13 @@ class Globs:
             self.y[index] += zysk
             self.y1[index] += zysk
             
-            self.dochodowy = zysk * self.DOCHODOWY
-            self.dochodowy *=(1-optymalizacja_podatkowa)
-            self.y[index] -= self.dochodowy
+            dochodowy = zysk * self.DOCHODOWY
+            self.dochodowy = dochodowy
+            dochodowy *=(1-optymalizacja_podatkowa) 
+            self.y[index] -= dochodowy
             #minus max z dzialki
-            self.y[index] -= self.ymax[index] - podatek_wejsciowy
-            self.y1[index] -= self.ymax[index] - podatek_wejsciowy
+            self.y[index] -= self.ymax[index] + podatek_wejsciowy
+            self.y1[index] -= self.ymax[index] + podatek_wejsciowy
             
             index +=1
             
@@ -146,6 +148,9 @@ class Globs:
         print ('podatek dochodowy',self.dochodowy)
             
 
+    def on_value_change(self,change):
+        return change['new']
+        
     def start(self):
         
         _cena_bez_podzialu = widgets.FloatSlider(min=self.cena_bez_podzialu[0], max=self.cena_bez_podzialu[1], step=self.cena_bez_podzialu[2])
@@ -186,6 +191,7 @@ class Globs:
         _optymalizacja_podatkowa.description = ' '
         wid_params = []
         wid_names = []
+        wid_extra_output = []
         boxes = []
 
         wid_params.append(_cena_bez_podzialu)
@@ -195,15 +201,49 @@ class Globs:
         wid_params.append(_sprzedaz_nieruchomosci)
         wid_params.append(_optymalizacja_podatkowa)
 
-        wid_names.append(widgets.ToggleButton(description='Cena sprzedazy',disabled=True, border='none'))
-        wid_names.append(widgets.ToggleButton(description='Cena rzeczoznawcy',disabled=True, border='none'))
-        wid_names.append(widgets.ToggleButton(description='Wzrost wartosci',disabled=True, border='none'))
-        wid_names.append(widgets.ToggleButton(description='Koszt nieruchomosci',disabled=True, border='none'))
-        wid_names.append(widgets.ToggleButton(description='Sprzedaz nieruchomosci',disabled=True, border='none'))
-        wid_names.append(widgets.ToggleButton(description='Optymalizacja podatku',disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Cena sprzedazy', disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Cena rzeczoznawcy', disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Wzrost wartosci', disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Koszt nieruchomosci (netto)', disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Sprzedaz nieruchomosci (netto)', disabled=True, border='none'))
+        wid_names.append(widgets.ToggleButton(description='Optymalizacja podatku', disabled=True, border='none'))
+        
+        wid_extra_output.append(widgets.Text(disabled=True, value='-'))
+        wid_extra_output.append(widgets.Text(disabled=True, value='-'))
+        wid_extra_output.append(widgets.Text(disabled=True))
+        wid_extra_output.append(widgets.Text(disabled=True))
+        wid_extra_output.append(widgets.Text(disabled=True))
+        wid_extra_output.append(widgets.Text(disabled=True))
+        
+        def cena_rzeczoznawcy(change):
+            a = widgets.Text(disabled=True, value = 'Nominalnie za metr '+str(wid_params[2].value * change['new']))
+            widgets.jsdlink((a, 'value'), (wid_extra_output[2], 'value'))
+            
+        def wzrost_wartosci(change):
+            a = widgets.Text(disabled=True, value = 'Nominalnie za metr '+str(wid_params[1].value * change['new']))
+            widgets.jsdlink((a, 'value'), (wid_extra_output[2], 'value'))
+            
+        def vat1(change):
+            a = widgets.Text(disabled=True, value = 'Brutto '+str(change['new'] * (1+self.VAT1)))
+            widgets.jsdlink((a, 'value'), (wid_extra_output[3], 'value'))
+            
+        def vat2(change):
+            a = widgets.Text(disabled=True, value = 'Brutto '+str(change['new'] * (1+self.VAT2)))
+            widgets.jsdlink((a, 'value'), (wid_extra_output[4], 'value'))
+        
+        def dochodowy_minus(change):
+           a = widgets.Text(disabled=True, value = 'Mniej o '+str(self.dochodowy * change['new']))
+           widgets.jsdlink((a, 'value'), (wid_extra_output[5], 'value'))
 
+        wid_params[1].observe(cena_rzeczoznawcy, names='value')
+        wid_params[2].observe(wzrost_wartosci, names='value')
+        wid_params[3].observe(vat1, names='value')
+        wid_params[4].observe(vat2, names='value')
+        wid_params[5].observe(dochodowy_minus, names='value')
+        
+        
         for i in range(len(wid_params)):
-           boxes.append(Box([wid_names[i],wid_params[i]],margin = "0px 0px 10px 20px",width = '30%')) 
+            boxes.append(Box([wid_names[i],wid_params[i],wid_extra_output[i]],margin = "0px 0px 10px 20px",width = '30%')) 
 
         vbox1 = HBox([boxes[0], boxes[1], boxes[2]])
         vbox2 = HBox([boxes[3], boxes[4], boxes[5]])     
