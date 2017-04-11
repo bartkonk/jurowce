@@ -14,8 +14,8 @@ class Globs:
     def __init__(self, VAT1, VAT2, DOCHODOWY,ADJ,POW,cena_bez_podzialu,cena_adjacencka_bez_podzialu,wzrost_wartosci,n_dzialek,n_dzialek_pow):
         self.VAT1  = VAT1
         self.VAT2  = VAT2
-        self.DOCHODOWY = DOCHODOWY
-        self.D = DOCHODOWY
+        self.D1 = DOCHODOWY
+        self.D2 = DOCHODOWY+DOCHODOWY - DOCHODOWY*DOCHODOWY
         self.ADJ = ADJ
         self.POW = POW
         self.cena_bez_podzialu = cena_bez_podzialu
@@ -23,8 +23,11 @@ class Globs:
         self.wzrost_wartosci = wzrost_wartosci
         self.n_dzialek = n_dzialek
         self.n_dzialek_pow = n_dzialek_pow
+        self.optymalizacja_podatkowa = 0.0
         
+        self.D = 0.0
         self.dochodowy = 0.0
+        self.dochodowy_opt = 0.0
         self.oplata_adjacencka = 0.0
         self.n_dzialek_pow_cal = 0
         if self.n_dzialek != len(self.n_dzialek_pow):
@@ -40,6 +43,11 @@ class Globs:
         self.y = np.zeros(self.size)
         self.y1 = np.zeros(self.size)
         self.ymax = np.zeros(self.size)
+        
+        self.y_all = np.zeros(self.size)
+        self.y_split = np.zeros(self.size)
+        self.y_estate = np.zeros(self.size)
+        self.y_estate_tax = np.zeros(self.size)
         
         self.zysk = 0.0
         
@@ -66,6 +74,11 @@ class Globs:
         
         for d in range(int(self.pelny_spadek_kosztow_po)):
             self.spadek_kosztow[d] = (float(d))*factor
+            
+    def set_inwestycje(d, optymalizacja_podatkowa):
+        self.D = d
+        self.optymalizacja_podatkowa = optymalizacja_podatkowa
+        
         
     def sprzedaz_calosci(self, cena_bez_podzialu):
     
@@ -93,8 +106,13 @@ class Globs:
                 self.ymax[index] = self.y[index]
             index +=1
                     
-    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci,optymalizacja_podatkowa, podatek_wejsciowy):
-
+    def sprzedaz_domow_rel(self,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa, podatek_wejsciowy, tax):
+    
+        if(tax == 'pojedynczy'):
+            self.D = self.D1
+        else:
+            self.D = self.D2
+            
         index = 0
         for price in (self.cena_sprzedazy):
             self.x[index] = price
@@ -112,8 +130,9 @@ class Globs:
             
             dochodowy = zysk_netto * self.D
             self.dochodowy = dochodowy
-            dochodowy *=(1-optymalizacja_podatkowa) 
-            self.y[index] -= dochodowy
+            self.dochodowy_opt = dochodowy
+            self.dochodowy_opt *=(1-optymalizacja_podatkowa) 
+            self.y[index] -= self.dochodowy_opt
             
             self.y[index] -= podatek_wejsciowy
             self.y1[index] -= podatek_wejsciowy
@@ -122,25 +141,16 @@ class Globs:
                         
             index +=1
             
-    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa, tax):
-    
-        self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
-        podatek_wejsciowy = self.POW * przed_adjacencka_cena_za_metr *self.podatek_od_kapitalu_wejsciowego
+    def plot(self):
 
         fig = plt.figure(figsize=(10,4))
         ax = fig.add_axes([0, 0, 1, 1])
         plt.ylabel('zysk')
-
-        self.sprzedaz_calosci(cena_bez_podzialu)
         plt.xticks(np.arange(self.cena_sprzedazy[0],self.cena_sprzedazy[self.size-1]+5,5))
-        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz bez podzialu")
-
-        self.sprzedaz_dzialek()
-        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz z podzialem")
-        
-        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci, optymalizacja_podatkowa, podatek_wejsciowy)
-        plt.plot(self.x,self.y1, linewidth=2,label="sprzedaz domow")
-        plt.plot(self.x,self.y, linewidth=2,label="sprzedaz domow PO PODATKU")
+        plt.plot(self.x,self.y_all, linewidth=2,label="sprzedaz bez podzialu")
+        plt.plot(self.x,self.y_split, linewidth=2,label="sprzedaz z podzialem")
+        plt.plot(self.x,self.y_estate, linewidth=2,label="sprzedaz domow")
+        plt.plot(self.x,self.y_estate_tax,linewidth=2,label="sprzedaz domow PO PODATKU")
 
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.grid()
@@ -160,6 +170,22 @@ class Globs:
         print ('powierzchnia dzialek podzielonych',self.n_dzialek_pow_cal)
         print ('podatek dochodowy',self.dochodowy)
         print ('nominalnie zysku',self.zysk)
+        
+    def compute(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa, tax):
+        
+        self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
+        podatek_wejsciowy = self.POW * przed_adjacencka_cena_za_metr *self.podatek_od_kapitalu_wejsciowego
+        self.sprzedaz_calosci(cena_bez_podzialu)
+        self.y_all = np.copy(self.y)
+        self.sprzedaz_dzialek()
+        self.y_split = np.copy(self.y)
+        self.sprzedaz_domow_rel(koszty_nieruchomosci, sprzedaz_nieruchomosci, optymalizacja_podatkowa, podatek_wejsciowy, tax)
+        self.y_estate = np.copy(self.y1)
+        self.y_estate_tax = np.copy(self.y)
+        
+        self.plot()
+        
+    
             
 
     def on_value_change(self,change):
@@ -238,6 +264,17 @@ class Globs:
         wid_extra_output.append(widgets.Text(width = width_, disabled=True, value='Brutto '+str(wid_params[4].value * (1+self.VAT2))))
         wid_extra_output.append(widgets.Text(width = width_, disabled=True, value='Mniej o '+str(self.dochodowy * wid_params[5].value)))
         
+        _tax = widgets.RadioButtons(options = ['pojedynczy', 'podwojny'], description='Tax:',disabled=False)
+        
+        def cut_string(string):
+            index = 0
+            cut_index = 0
+            for i in string:
+                if(i == '.'):
+                   cut_index = index
+                index+=1
+            return string[0:cut_index]
+        
         def cena_rzeczoznawcy(change):
             a = widgets.Text(disabled=True, value = 'Nominalnie za metr +'+str(wid_params[2].value * change['new']))
             widgets.jsdlink((a, 'value'), (wid_extra_output[2], 'value'))
@@ -249,32 +286,27 @@ class Globs:
         def vat1(change):
             a = widgets.Text(disabled=True, value = 'Brutto '+str(change['new'] * (1+self.VAT1)))
             widgets.jsdlink((a, 'value'), (wid_extra_output[3], 'value'))
+            string = cut_string(str(self.dochodowy * wid_params[5].value))
+            b = widgets.Text(disabled=True, value = 'Mniej o '+string)
+            widgets.jsdlink((b, 'value'), (wid_extra_output[5], 'value'))
             
         def vat2(change):
             a = widgets.Text(disabled=True, value = 'Brutto '+str(change['new'] * (1+self.VAT2)))
             widgets.jsdlink((a, 'value'), (wid_extra_output[4], 'value'))
-        
-        def dochodowy_minus(change):
-           a = widgets.Text(disabled=True, value = 'Mniej o '+str(self.dochodowy * change['new']))
-           widgets.jsdlink((a, 'value'), (wid_extra_output[5], 'value'))
-           
-        def set_tax(change):
-            if(change['new']=='pojedynczy'):
-                self.D = self.DOCHODOWY
-            if(change['new']=='podwojny'):
-                self.D = 2*self.DOCHODOWY - self.DOCHODOWY*self.DOCHODOWY
-            
-          
+            string = cut_string(str(self.dochodowy * wid_params[5].value))
+            b = widgets.Text(disabled=True, value = 'Mniej o '+string)
+            widgets.jsdlink((b, 'value'), (wid_extra_output[5], 'value'))
 
-        wid_params[1].observe(cena_rzeczoznawcy, names='value')
-        wid_params[2].observe(wzrost_wartosci, names='value')
-        wid_params[3].observe(vat1, names='value')
-        wid_params[4].observe(vat2, names='value')
-        wid_params[5].observe(dochodowy_minus, names='value')
-        
-        _tax = widgets.RadioButtons(options = ['pojedynczy', 'podwojny'], description='Tax:',disabled=False)
-        _tax.observe(set_tax,names='value')
-        
+        def dochodowy_minus(change):
+            string = cut_string(str(self.dochodowy * change['new']))
+            a = widgets.Text(disabled=True, value = 'Mniej o '+string)
+            widgets.jsdlink((a, 'value'), (wid_extra_output[5], 'value'))
+            
+        def tax_output(change):
+            string = cut_string(str(self.dochodowy * wid_params[5].value))
+            a = widgets.Text(disabled=True, value = 'Mniej o '+string)
+            widgets.jsdlink((a, 'value'), (wid_extra_output[5], 'value'))
+
         for i in range(len(wid_params)):
             boxes.append(Box([wid_names[i],wid_params[i],wid_extra_output[i]],margin = "0px 0px 10px 20px",width = '28%')) 
 
@@ -284,9 +316,19 @@ class Globs:
         display(vbox2)
         display(_tax)
         
-        self.plot(_cena_bez_podzialu.value, _przed_adjacencka_cena_za_metr.value, _wzrost_wartosci.value, _koszty_nieruchomosci.value,\
+        self.compute(_cena_bez_podzialu.value, _przed_adjacencka_cena_za_metr.value, _wzrost_wartosci.value, _koszty_nieruchomosci.value,\
         _sprzedaz_nieruchomosci.value, _optymalizacja_podatkowa.value, _tax.value)
-        interactive(self.plot,cena_bez_podzialu = _cena_bez_podzialu, przed_adjacencka_cena_za_metr = _przed_adjacencka_cena_za_metr, \
+        
+        interactive(self.compute,cena_bez_podzialu = _cena_bez_podzialu, przed_adjacencka_cena_za_metr = _przed_adjacencka_cena_za_metr, \
         wzrost_wartosci = _wzrost_wartosci, koszty_nieruchomosci = _koszty_nieruchomosci, sprzedaz_nieruchomosci = _sprzedaz_nieruchomosci,\
         optymalizacja_podatkowa = _optymalizacja_podatkowa, tax = _tax)
+        
+        wid_params[1].observe(cena_rzeczoznawcy, names='value')
+        wid_params[2].observe(wzrost_wartosci, names='value')
+        wid_params[3].observe(vat1, names='value')
+        wid_params[4].observe(vat2, names='value')
+        wid_params[5].observe(dochodowy_minus, names='value')
+        _tax.observe(tax_output,names='value')
+        
+       
         
