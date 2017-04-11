@@ -15,6 +15,7 @@ class Globs:
         self.VAT1  = VAT1
         self.VAT2  = VAT2
         self.DOCHODOWY = DOCHODOWY
+        self.D = DOCHODOWY
         self.ADJ = ADJ
         self.POW = POW
         self.cena_bez_podzialu = cena_bez_podzialu
@@ -109,25 +110,19 @@ class Globs:
             self.y[index] += zysk_netto
             self.y1[index] += zysk_netto
             
-            dochodowy = zysk_netto * self.DOCHODOWY
+            dochodowy = zysk_netto * self.D
             self.dochodowy = dochodowy
             dochodowy *=(1-optymalizacja_podatkowa) 
             self.y[index] -= dochodowy
-            
-            
-            #relatywny do max z dzialki
-            #self.y[index] -= self.ymax[index] + podatek_wejsciowy
-            #self.y1[index] -= self.ymax[index] + podatek_wejsciowy
             
             self.y[index] -= podatek_wejsciowy
             self.y1[index] -= podatek_wejsciowy
             
             self.zysk = self.y[index]
-            
-            
+                        
             index +=1
             
-    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa):
+    def plot(self,cena_bez_podzialu, przed_adjacencka_cena_za_metr,wzrost_wartosci,koszty_nieruchomosci,sprzedaz_nieruchomosci, optymalizacja_podatkowa, tax):
     
         self.oblicz_oplate_adjacencka(przed_adjacencka_cena_za_metr, wzrost_wartosci)
         podatek_wejsciowy = self.POW * przed_adjacencka_cena_za_metr *self.podatek_od_kapitalu_wejsciowego
@@ -160,8 +155,6 @@ class Globs:
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.grid()
         plt.show()
-        
-        
         
         print ('oplata adjacencka',self.oplata_adjacencka)
         print ('powierzchnia dzialek podzielonych',self.n_dzialek_pow_cal)
@@ -264,6 +257,14 @@ class Globs:
         def dochodowy_minus(change):
            a = widgets.Text(disabled=True, value = 'Mniej o '+str(self.dochodowy * change['new']))
            widgets.jsdlink((a, 'value'), (wid_extra_output[5], 'value'))
+           
+        def set_tax(change):
+            if(change['new']=='pojedynczy'):
+                self.D = self.DOCHODOWY
+            if(change['new']=='podwojny'):
+                self.D = 2*self.DOCHODOWY - self.DOCHODOWY*self.DOCHODOWY
+            
+          
 
         wid_params[1].observe(cena_rzeczoznawcy, names='value')
         wid_params[2].observe(wzrost_wartosci, names='value')
@@ -271,16 +272,21 @@ class Globs:
         wid_params[4].observe(vat2, names='value')
         wid_params[5].observe(dochodowy_minus, names='value')
         
+        _tax = widgets.RadioButtons(options = ['pojedynczy', 'podwojny'], description='Tax:',disabled=False)
+        _tax.observe(set_tax,names='value')
+        
         for i in range(len(wid_params)):
             boxes.append(Box([wid_names[i],wid_params[i],wid_extra_output[i]],margin = "0px 0px 10px 20px",width = '28%')) 
 
         vbox1 = HBox([boxes[0], boxes[1], boxes[2]])
-        vbox2 = HBox([boxes[3], boxes[4], boxes[5]])     
+        vbox2 = HBox([boxes[3], boxes[4], boxes[5]])
         display(vbox1)
         display(vbox2)
+        display(_tax)
         
         self.plot(_cena_bez_podzialu.value, _przed_adjacencka_cena_za_metr.value, _wzrost_wartosci.value, _koszty_nieruchomosci.value,\
-        _sprzedaz_nieruchomosci.value, _optymalizacja_podatkowa.value)
+        _sprzedaz_nieruchomosci.value, _optymalizacja_podatkowa.value, _tax.value)
         interactive(self.plot,cena_bez_podzialu = _cena_bez_podzialu, przed_adjacencka_cena_za_metr = _przed_adjacencka_cena_za_metr, \
-        wzrost_wartosci = _wzrost_wartosci, koszty_nieruchomosci = _koszty_nieruchomosci, sprzedaz_nieruchomosci = _sprzedaz_nieruchomosci, optymalizacja_podatkowa = _optymalizacja_podatkowa)
+        wzrost_wartosci = _wzrost_wartosci, koszty_nieruchomosci = _koszty_nieruchomosci, sprzedaz_nieruchomosci = _sprzedaz_nieruchomosci,\
+        optymalizacja_podatkowa = _optymalizacja_podatkowa, tax = _tax)
         
